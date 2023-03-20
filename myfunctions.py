@@ -1,20 +1,33 @@
 def parser():
     import requests
+    import xlsxwriter
     from bs4 import BeautifulSoup as BS
     r = requests.get("https://www.chitai-gorod.ru/search?phrase=python")
     html = BS(r.content, 'html.parser')
-
     name = []
+    author = []
     price = []
+    col = 1
+    counter = 0
     for el in html.select(".products-list > .product-card.product"):
-        title = el.select('.product-card__text > a')
-        print(title[0].text)
-        name.append(title[0].text)
-        title2 = el.select('.product-card__price > .product-price > .product-price__value')
-        # если убрать (> .product-price__value) то будет показываться старая и актуальная цена
-        print(title2[0].text)
-        price.append(title2[0].text)
+        title1 = el.select('.product-title > .product-title__head')
+        name.append(title1[0].text)
+        title2 = el.select('.product-title > .product-title__author')
+        author.append(title2[0].text)
+        title3 = el.select('.product-card__price > .product-price > .product-price__value')
+        price.append(title3[0].text)
+        print(title1[0].text, title2[0].text, title3[0].text)
+        counter += 1
 
-    with open("info.txt", 'w', encoding='utf-8') as file:
-        for i in range(48):
-            file.write(name[i] + price[i] + "\n")
+    workbook = xlsxwriter.Workbook('ResultsPARSER.xlsx')
+    worksheet = workbook.add_worksheet()
+    worksheet.write(0, 0, 'Название')
+    worksheet.write(0, 1, 'Автор')
+    worksheet.write(0, 2, 'Цена')
+    for i in range(counter):
+        worksheet.write(col, 0, name[i])
+        worksheet.write(col, 1, author[i])
+        worksheet.write(col, 2, price[i])
+        i += 1
+        col += 1
+    workbook.close()
